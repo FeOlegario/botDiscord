@@ -29,10 +29,40 @@ async def ping(ctx):
 
 
 @bot.command(name='ajuda')
-async def bop(ctx):
-    await ctx.author.send(f"""
-Olá, {ctx.author}! Eu sou um bot que formata mensagens para serem usadas em queries SQL. Para formatar uma mensagem, digite `!f` seguido da mensagem que deseja formatar. Não precisa se preocupar com as quebras de linha, eu cuido disso pra você!
-""")
+async def ajuda_comandos(ctx):
+    embed1 = discord.Embed(
+        title="Como usar o bot",
+        description=":rotating_light: Para obter os BOPs deve-se atentar nesses dois modos:",
+        color= 57599
+    )
+    embed1.add_field(
+        name=":small_blue_diamond: Modo 1 sem arquivo",
+        value=":writing_hand: Digite `!f ` seguido da mensagem que deseja formatar.",
+        inline=False
+    )
+
+    embed1.set_image(url=r"https://media.discordapp.net/attachments/937132531386572913/1345918836183928884/sem_arquivo.png?ex=67c64c18&is=67c4fa98&hm=d37747b920d8b8c51b409a06c9368eb0d2a937fef09d44c6abdbf8aae4a77a4b&=&format=webp&quality=lossless")
+
+
+    embed2 = discord.Embed(
+        title="",
+        description="",
+        color= 57599
+    )
+
+
+    embed2.add_field(
+        name=":small_orange_diamond: Modo 2 com arquivo",
+        value=":writing_hand: Digite `!f a` e anexe o arquivo contendo as mensagens que deseja formatar.",
+        inline=False
+    )
+    embed2.set_image(url=r"https://media.discordapp.net/attachments/937132531386572913/1345918835781271695/com_arquivo.png?ex=67c64c18&is=67c4fa98&hm=ece66367c2f33f9396f39cf3966b73291c463fc6b4a5f4df9d2d9c10e59a3483&=&format=webp&quality=lossless")
+
+    await ctx.message.delete()
+    await ctx.send(embed=embed1, delete_after=60)
+    await ctx.send(embed=embed2, delete_after=60)
+
+
 
 @bot.command(name='f')
 async def formatar(ctx, *, mensagens: str):
