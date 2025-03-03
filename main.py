@@ -83,6 +83,8 @@ async def formatar(ctx, *, mensagens: str):
     file = discord.File(temp_filename, filename="saida.txt")
 
     await ctx.message.delete()
-    await ctx.send(f"Aqui está o resultado formatado, {ctx.author.mention}:", file=file)
+    await ctx.send(f"""Aqui está o resultado formatado, {ctx.author.mention}.
+{len(mensagens.splitlines())} BOPs. :white_check_mark:
+""", file=file)
 
 bot.run(TOKEN)
