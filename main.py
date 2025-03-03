@@ -1,5 +1,6 @@
 import os
 import discord
+import tempfile
 from discord.ext import commands
 from dotenv import load_dotenv
 
@@ -35,8 +36,23 @@ Olá, {ctx.author}! Eu sou um bot que formata mensagens para serem usadas em que
 
 @bot.command(name='f')
 async def formatar(ctx, *, mensagens: str):
-    resultado = formatar_texto(mensagens)
+    if mensagens == "a" and ctx.message.attachments:
+        anexo = ctx.message.attachments[0]
+        conteudo = await anexo.read()
+        mensagens = conteudo.decode("utf-8")
+    
+
+    resultado = formatar_texto(mensagens)  
+
+    # Criar um arquivo temporário
+    with tempfile.NamedTemporaryFile(delete=False, mode="w", encoding="utf-8", suffix=".txt") as temp_file:
+        temp_file.write(resultado)
+        temp_filename = temp_file.name  # Salva o caminho do arquivo gerado
+
+    # Preparar o envio do arquivo
+    file = discord.File(temp_filename, filename="saida.txt")
+
     await ctx.message.delete()
-    await ctx.send(f"Aqui está o resultado formatado {ctx.author.mention}:\n```{resultado}```")
+    await ctx.send(f"Aqui está o resultado formatado, {ctx.author.mention}:", file=file)
 
 bot.run(TOKEN)
