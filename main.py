@@ -1,9 +1,13 @@
 import os
 import discord
 import tempfile
+import pyperclip
 from discord.ext import commands
 from dotenv import load_dotenv
 
+def copiar_para_area_de_transferencia(texto):
+    pyperclip.copy(texto)
+    print("Texto copiado para a área de transferência")
 
 def formatar_texto(bops):
     bops_formatados = bops.strip().splitlines()
@@ -18,15 +22,23 @@ intents = discord.Intents.default()
 intents.message_content = True
 bot = commands.Bot(command_prefix='!', intents=intents)
 
+class CopiarButton(discord.ui.View):
+    def __init__(self, resultado):
+        super().__init__()
+        self.resultado = resultado
+
+    @discord.ui.button(label="Copiar", style=discord.ButtonStyle.green)
+    async def copiar(self, interaction: discord.Interaction, button: discord.ui.Button):
+        copiar_para_area_de_transferencia(self.resultado)
+        await interaction.response.send_message("Resultado copiado para a área de transferência!", ephemeral=True,delete_after=5)
+
 @bot.event
 async def on_ready():
     print(f'Bot {bot.user} pronto pra uso!')
 
-
 @bot.command(name='ping')
 async def ping(ctx):
     await ctx.send(f"Pong! 🏓 Latência: {round(bot.latency * 1000)}ms")
-
 
 @bot.command(name='ajuda')
 async def ajuda_comandos(ctx):
@@ -43,13 +55,11 @@ async def ajuda_comandos(ctx):
 
     embed1.set_image(url=r"https://media.discordapp.net/attachments/937132531386572913/1345918836183928884/sem_arquivo.png?ex=67c64c18&is=67c4fa98&hm=d37747b920d8b8c51b409a06c9368eb0d2a937fef09d44c6abdbf8aae4a77a4b&=&format=webp&quality=lossless")
 
-
     embed2 = discord.Embed(
         title="",
         description="",
         color= 57599
     )
-
 
     embed2.add_field(
         name=":small_orange_diamond: Modo 2 com arquivo",
@@ -62,17 +72,14 @@ async def ajuda_comandos(ctx):
     await ctx.send(embed=embed1, delete_after=60)
     await ctx.send(embed=embed2, delete_after=60)
 
-
-
 @bot.command(name='f')
 async def formatar(ctx, *, mensagens: str):
     if mensagens == "a" and ctx.message.attachments:
         anexo = ctx.message.attachments[0]
         conteudo = await anexo.read()
         mensagens = conteudo.decode("utf-8")
-    
 
-    resultado = formatar_texto(mensagens)  
+    resultado = formatar_texto(mensagens)
 
     # Criar um arquivo temporário
     with tempfile.NamedTemporaryFile(delete=False, mode="w", encoding="utf-8", suffix=".txt") as temp_file:
@@ -83,8 +90,9 @@ async def formatar(ctx, *, mensagens: str):
     file = discord.File(temp_filename, filename="saida.txt")
 
     await ctx.message.delete()
+    view = CopiarButton(resultado)
     await ctx.send(f"""Aqui está o resultado formatado, {ctx.author.mention}.
 {len(mensagens.splitlines())} BOPs. :white_check_mark:
-""", file=file)
+""", file=file, view=view)
 
 bot.run(TOKEN)
