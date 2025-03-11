@@ -22,16 +22,6 @@ intents = discord.Intents.default()
 intents.message_content = True
 bot = commands.Bot(command_prefix='!', intents=intents)
 
-class CopiarButton(discord.ui.View):
-    def __init__(self, resultado):
-        super().__init__()
-        self.resultado = resultado
-
-    @discord.ui.button(label="Copiar", style=discord.ButtonStyle.green)
-    async def copiar(self, interaction: discord.Interaction, button: discord.ui.Button):
-        copiar_para_area_de_transferencia(self.resultado)
-        await interaction.response.send_message("Resultado copiado para a área de transferência!", ephemeral=True,delete_after=5)
-
 @bot.event
 async def on_ready():
     print(f'Bot {bot.user} pronto pra uso!')
@@ -90,9 +80,8 @@ async def formatar(ctx, *, mensagens: str):
     file = discord.File(temp_filename, filename="saida.txt")
 
     await ctx.message.delete()
-    view = CopiarButton(resultado)
     await ctx.send(f"""Aqui está o resultado formatado, {ctx.author.mention}.
-{len(mensagens.splitlines())} BOPs. :white_check_mark:
-""", file=file, view=view)
+{len(mensagens.splitlines())} BOPs. :white_check_mark: De multiplos cliques para copiar o texto para a área de transferência.
+""", file=file)
 
 bot.run(TOKEN)
