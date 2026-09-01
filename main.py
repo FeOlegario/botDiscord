@@ -22,16 +22,6 @@ intents = discord.Intents.default()
 intents.message_content = True
 bot = commands.Bot(command_prefix='!', intents=intents)
 
-class CopiarButton(discord.ui.View):
-    def __init__(self, resultado):
-        super().__init__()
-        self.resultado = resultado
-
-    @discord.ui.button(label="Copiar", style=discord.ButtonStyle.green)
-    async def copiar(self, interaction: discord.Interaction, button: discord.ui.Button):
-        copiar_para_area_de_transferencia(self.resultado)
-        await interaction.response.send_message("Resultado copiado para a área de transferência!", ephemeral=True,delete_after=5)
-
 @bot.event
 async def on_ready():
     print(f'Bot {bot.user} pronto pra uso!')
@@ -39,6 +29,26 @@ async def on_ready():
 @bot.command(name='ping')
 async def ping(ctx):
     await ctx.send(f"Pong! 🏓 Latência: {round(bot.latency * 1000)}ms")
+
+
+@bot.command(name='l', aliases=['limpar', 'clear'])
+async def limpar(ctx, quantidade: str = "10"):
+    """Apaga mensagens no chat. Use um número (padrão: 10) ou 'tudo' / 'all' para apagar todas as mensagens."""
+    if quantidade.lower() in ["tudo", "all", "todas", "todos", "*", "total"]:
+        await ctx.channel.purge(limit=None)
+        return
+
+    try:
+        qtd = int(quantidade)
+    except ValueError:
+        await ctx.send("Digite um número válido de mensagens para apagar ou `tudo` para apagar todas as mensagens.", delete_after=5)
+        return
+
+    if qtd < 1:
+        await ctx.send("Digite um número válido de mensagens para apagar.", delete_after=5)
+        return
+
+    await ctx.channel.purge(limit=qtd + 1)
 
 @bot.command(name='ajuda')
 async def ajuda_comandos(ctx):
@@ -90,9 +100,10 @@ async def formatar(ctx, *, mensagens: str):
     file = discord.File(temp_filename, filename="saida.txt")
 
     await ctx.message.delete()
-    view = CopiarButton(resultado)
+
     await ctx.send(f"""Aqui está o resultado formatado, {ctx.author.mention}.
-{len(mensagens.splitlines())} BOPs. :white_check_mark:
-""", file=file, view=view)
+{len(mensagens.splitlines())} BOPs. :white_check_mark: De multiplos cliques para copiar o texto para a área de transferência.
+**VERIFIQUE O FINAL DO ARQUIVO SE ESTÁ COMPLETO!** Caso não esteja clique na seta de dwonload para baixar o arquivo.
+""", file=file)
 
 bot.run(TOKEN)
