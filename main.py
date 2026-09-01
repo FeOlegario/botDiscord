@@ -2,6 +2,7 @@ import os
 import discord
 import tempfile
 import pyperclip
+import datetime
 from discord.ext import commands
 from dotenv import load_dotenv
 
@@ -31,24 +32,64 @@ async def ping(ctx):
     await ctx.send(f"Pong! 🏓 Latência: {round(bot.latency * 1000)}ms")
 
 
+async def safe_purge(channel, limit: int | None = None):
+    """
+    Apaga mensagens de forma segura:
+    - Usa bulk delete para mensagens com menos de 14 dias (rápido).
+    - Apaga individualmente mensagens com mais de 14 dias ignorando NotFound/HTTPException.
+    """
+    agora = discord.utils.utcnow()
+    limite_14_dias = agora - datetime.timedelta(days=14)
+
+    def eh_recente(msg):
+        return msg.created_at > limite_14_dias
+
+    try:
+        apagadas = await channel.purge(limit=limit, check=eh_recente, bulk=True)
+        total_apagadas = len(apagadas)
+        if limit is not None:
+            limit -= total_apagadas
+            if limit <= 0:
+                return total_apagadas
+    except (discord.NotFound, discord.HTTPException):
+        pass
+
+    try:
+        async for msg in channel.history(limit=limit):
+            try:
+                await msg.delete()
+            except (discord.NotFound, discord.HTTPException):
+                pass
+    except (discord.NotFound, discord.HTTPException):
+        pass
+
+
 @bot.command(name='l', aliases=['limpar', 'clear'])
 async def limpar(ctx, quantidade: str = "10"):
-    """Apaga mensagens no chat. Use um número (padrão: 10) ou 'tudo' / 'all' para apagar todas as mensagens."""
+    """Apaga mensagens no chat. Use um número (padrão: 10), 'tudo' / '*' ou 'nuke' para recriar o canal."""
+    if quantidade.lower() in ["nuke", "recriar", "clone"]:
+        posicao = ctx.channel.position
+        novo_canal = await ctx.channel.clone(reason=f"Canal recriado por {ctx.author.name}")
+        await ctx.channel.delete(reason=f"Canal limpo por {ctx.author.name}")
+        await novo_canal.edit(position=posicao)
+        await novo_canal.send(f"💥 Chat recriado e limpo por {ctx.author.mention}!", delete_after=5)
+        return
+
     if quantidade.lower() in ["tudo", "all", "todas", "todos", "*", "total"]:
-        await ctx.channel.purge(limit=None)
+        await safe_purge(ctx.channel, limit=None)
         return
 
     try:
         qtd = int(quantidade)
     except ValueError:
-        await ctx.send("Digite um número válido de mensagens para apagar ou `tudo` para apagar todas as mensagens.", delete_after=5)
+        await ctx.send("Digite um número válido de mensagens para apagar, `tudo` para apagar todas, ou `nuke` para recriar o canal.", delete_after=5)
         return
 
     if qtd < 1:
         await ctx.send("Digite um número válido de mensagens para apagar.", delete_after=5)
         return
 
-    await ctx.channel.purge(limit=qtd + 1)
+    await safe_purge(ctx.channel, limit=qtd + 1)
 
 @bot.command(name='ajuda')
 async def ajuda_comandos(ctx):

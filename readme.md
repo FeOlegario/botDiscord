@@ -24,5 +24,5 @@ Crie um arquivo [.env]baseado no [.env.example] e adicione o seu token  Discord:
 2. No Discord, use os seguintes comandos:
     - `!ping`: Verifica a latência do bot.
     - `!ajuda`: Envia uma mensagem de ajuda para o usuário.
-    - `!l [quantidade/tudo]`: Apaga mensagens do chat (padrão: 10 mensagens, ou `tudo`/`all` para apagar todas).
+    - `!l [quantidade/tudo/nuke]`: Apaga mensagens do chat (padrão: 10 mensagens, `tudo`/`*` para apagar de forma segura, ou `nuke` para recriar o canal instantaneamente).
     - `!f itens`: Envia o texto formatado.
